@@ -19,10 +19,14 @@ func main() {
 	http.HandleFunc("/", handler)
 
 	port := os.Getenv("PORT")
-	certFile := os.Getenv("HTTPS_CERT_FILE")
-	keyFile := os.Getenv("HTTPS_KEY_FILE")
-	log.Fatal(http.ListenAndServeTLS(":"+port, certFile, keyFile, nil))
-	//log.Fatal(http.ListenAndServe(":"+port, nil))
+	ssl := os.Getenv("SSL")
+	if ssl == "true" {
+		certFile := os.Getenv("HTTPS_CERT_FILE")
+		keyFile := os.Getenv("HTTPS_KEY_FILE")
+		log.Fatal(http.ListenAndServeTLS(":"+port, certFile, keyFile, nil))
+	} else {
+		log.Fatal(http.ListenAndServe(":"+port, nil))
+	}
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
