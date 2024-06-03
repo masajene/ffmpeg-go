@@ -17,6 +17,7 @@ func main() {
 	}
 
 	http.HandleFunc("/", handler)
+	http.HandleFunc("/direct", handlerDirect)
 
 	port := os.Getenv("PORT")
 	ssl := os.Getenv("SSL")
@@ -46,6 +47,26 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	scriptPath := os.Getenv("SHELL_SCRIPT_PATH")
 	cmd := exec.Command("/bin/sh", scriptPath, number, volume)
+	output, err := cmd.Output()
+	if err != nil {
+		http.Error(w, "Error executing script", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(output)
+}
+
+func handlerDirect(w http.ResponseWriter, r *http.Request) {
+	token := os.Getenv("API_TOKEN")
+	if r.Header.Get("Authorization") != token {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	fileName := r.URL.Query().Get("file_name")
+
+	scriptPath := os.Getenv("DIRECT_SHELL_SCRIPT_PATH")
+	cmd := exec.Command("/bin/sh", scriptPath, fileName)
 	output, err := cmd.Output()
 	if err != nil {
 		http.Error(w, "Error executing script", http.StatusInternalServerError)
